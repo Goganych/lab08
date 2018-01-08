@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/Goganych/lab05.svg?branch=master)](https://travis-ci.org/Goganych/lab05)
+[![Build Status](https://travis-ci.org/Goganych/lab06.svg?branch=master)](https://travis-ci.org/Goganych/lab06)
 
 ## Laboratory work V
 
@@ -11,7 +11,7 @@ $ open https://travis-ci.org
 ## Tasks
 
 - [x] 1. Авторизоваться на сервисе **Travis CI** с использованием **GitHub** аккаунта
-- [x] 2. Создать публичный репозиторий с названием **lab05** на сервисе **GitHub**
+- [x] 2. Создать публичный репозиторий с названием **lab06** на сервисе **GitHub**
 - [x] 3. Ознакомиться со ссылками учебного материала
 - [x] 4. Включить интеграцию сервиса **Travis CI** с созданным репозиторием
 - [x] 5. Получить токен для **Travis CLI** с правами **repo** и **user**
@@ -30,10 +30,10 @@ $ export GITHUB_TOKEN=*************************** # Устанавливаем �
 
 "Связываемся" с 5ой лабораторной работой
 ```ShellSession
-$ git clone https://github.com/${GITHUB_USERNAME}/lab04 projects/lab05 #Клонируем из lab04 в lab5
-$ cd projects/lab05 # заходим в директорию lab05
+$ git clone https://github.com/${GITHUB_USERNAME}/lab04 projects/lab06 #Клонируем из lab04 в lab5
+$ cd projects/lab06 # заходим в директорию lab06
 $ git remote remove origin #Отключаемся от lab04
-$ git remote add origin https://github.com/${GITHUB_USERNAME}/lab05 #Подключаемся к lab5
+$ git remote add origin https://github.com/${GITHUB_USERNAME}/lab06 #Подключаемся к lab5
 ```
 Создание файла *.travis.yml* и запись в него информации о языке программирования
 ```ShellSession
@@ -78,7 +78,7 @@ $ travis lint
 ```
 Вставка значка сервиса Travis CI в формате Markdown
 ```ShellSession
-$ ex -sc '1i|[![Build Status](https://travis-ci.org/Goganych/lab05.svg?branch=master)](https://travis-ci.org/Goganych/lab05)' -cx README.md
+$ ex -sc '1i|[![Build Status](https://travis-ci.org/Goganych/lab06.svg?branch=master)](https://travis-ci.org/Goganych/lab06)' -cx README.md
 ```
 Выгрузка локального репозитория в онлайн репозиторий и применение всех изменений
 ```ShellSession
