@@ -1,110 +1,137 @@
+## Laboratory work VI
+
+Данная лабораторная работа посвящена изучению фреймворков для тестирования на примере **Catch**
+
 [![Build Status](https://travis-ci.org/Goganych/lab06.svg?branch=master)](https://travis-ci.org/Goganych/lab06)
 
-## Laboratory work V
-
-Данная лабораторная работа посвещена изучению систем непрерывной интеграции на примере сервиса **Travis CI**
-
+Открываем сайт https://github.com/philsquared/Catch
 ```ShellSession
-$ open https://travis-ci.org
+$ open https://github.com/philsquared/Catch
 ```
 
 ## Tasks
 
-- [x] 1. Авторизоваться на сервисе **Travis CI** с использованием **GitHub** аккаунта
-- [x] 2. Создать публичный репозиторий с названием **lab06** на сервисе **GitHub**
-- [x] 3. Ознакомиться со ссылками учебного материала
-- [x] 4. Включить интеграцию сервиса **Travis CI** с созданным репозиторием
-- [x] 5. Получить токен для **Travis CLI** с правами **repo** и **user**
-- [x] 6. Получить фрагмент вставки значка сервиса **Travis CI** в формате **Markdown**
-- [x] 7. Установить [**Travis CLI**](https://github.com/travis-ci/travis.rb#installation)
-- [x] 8. Выполнить инструкцию учебного материала
-- [x] 9. Составить отчет и отправить ссылку личным сообщением в **Slack**
+- [X] 1. Создать публичный репозиторий с названием **lab06** на сервисе **GitHub**
+- [X] 2. Выполнить инструкцию учебного материала
+- [X] 3. Ознакомиться со ссылками учебного материала
+- [X] 4. Составить отчет и отправить ссылку личным сообщением в **Slack**
 
 ## Tutorial
-Установка значений для сервиса **GitHub** и **Travis CI**
+Делаем первоначальные настройки, добавляя значения переменным окружения
 ```ShellSession
-$ export GITHUB_USERNAME=Goganych # Устанавливаем значение переменной окружения GITHUB_USERNAME
-$ export GITHUB_TOKEN=*************************** # Устанавливаем значение переменной окружения GITHUB_TOKEN
+$ export GITHUB_USERNAME=Goganych #Устанавливаем значение переменной окружения GITHUB_USERNAME
+```
+Проводим первоначальные настройки для соединения с репозиторием шестой лабораторной работы
+```ShellSession
+
+$ git clone https://github.com/${GITHUB_USERNAME}/lab05 lab06 #Клонирование удаленного репозитория lab05 в локальный каталог 
+$ cd lab06 #Меняем директорию на lab06
+$ git remote remove origin #Отключаемся от удаленного репозитория пятой лабораторной
+$ git remote add origin https://github.com/${GITHUB_USERNAME}/lab06 #Подключаемся к удаленному репозиторию шестой лабораторной
 ```
 
-
-"Связываемся" с 5ой лабораторной работой
 ```ShellSession
-$ git clone https://github.com/${GITHUB_USERNAME}/lab04 projects/lab06 #Клонируем из lab04 в lab5
-$ cd projects/lab06 # заходим в директорию lab06
-$ git remote remove origin #Отключаемся от lab04
-$ git remote add origin https://github.com/${GITHUB_USERNAME}/lab06 #Подключаемся к lab5
-```
-Создание файла *.travis.yml* и запись в него информации о языке программирования
-```ShellSession
-$ cat > .travis.yml <<EOF
-language: cpp 
+$ mkdir tests #Создаем каталог tests
+#Устанавливаем библиотеку для модульного тестирования на языке С++ catch.hpp в каталог tests
+$ wget https://github.com/philsquared/Catch/releases/download/v1.9.3/catch.hpp -O tests/catch.hpp
+$ cat > tests/main.cpp <<EOF #Вносим изменения в main.cpp, подключая к нему catch.hpp
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"
 EOF
 ```
-Дополнение файла файла *.travis.yml* и запись в него следующей инфомации:
+Вносим изменения в CMakeLists.txt
 ```ShellSession
-$ cat >> .travis.yml <<EOF
+#Добавляем опцию option(BUILD_TESTS "Build tests" OFF) в файл CMakeLists.txt
+$ sed -i '' '/option(BUILD_EXAMPLES "Build examples" OFF)/a\
+option(BUILD_TESTS "Build tests" OFF)
+' CMakeLists.txt
+$ cat >> CMakeLists.txt <<EOF #Добавляем настройки в CMakeLists.txt
 
-script:
-- cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install
-- cmake --build _build
-- cmake --build _build --target install
+if(BUILD_TESTS)
+	enable_testing()
+	file(GLOB \${PROJECT_NAME}_TEST_SOURCES tests/*.cpp)
+	add_executable(check \${\${PROJECT_NAME}_TEST_SOURCES})
+	target_link_libraries(check \${PROJECT_NAME} \${DEPENDS_LIBRARIES})
+	add_test(NAME check COMMAND check "-s" "-r" "compact" "--use-colour" "yes")
+endif()
 EOF
 ```
-Дополнение файла файла *.travis.yml* и запись в него следующей инфомации:
+Вносим изменения в test1.cpp
 ```ShellSession
-$ cat >> .travis.yml <<EOF
+$ cat >> tests/test1.cpp <<EOF
+#include "catch.hpp"
+#include <print.hpp>
 
-addons:
-  apt:
-    sources:
-      - george-edison55-precise-backports
-    packages:
-      - cmake
-      - cmake-data
+TEST_CASE("output values should match input values", "[file]") {
+  std::string text = "hello";
+  std::ofstream out("file.txt");
+
+  print(text, out);
+  out.close();
+
+  std::string result;
+  std::ifstream in("file.txt");
+  in >> result;
+
+  REQUIRE(result == text);
+}
 EOF
 ```
-Вход в Travis с помощью токена GITHUB
+Работа с CMake
+```ShellSession
+#-H. устанавливаем каталог в который сгенерируется файл CMakeLists.txt
+#-B_build указывает директорию для собираемых файлов
+#-D - заменяет команду set
+$ cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install -DBUILD_TESTS=ON
+#--build _build создает бинарное дерево проекта
+$ cmake --build _build
+#--build _build создает бинарное дерево проекта
+#--target указывает необходимые для обработки цели
+$ cmake --build _build --target test Полная сборка проекта test
+```
+Работа с Travis
+```ShellSession
 
-```ShellSession
-$ travis login --github-token ${GITHUB_TOKEN}
-#Но у меня возникли проблемы с этой командой и пришлось её немного доработать,
-#вот как у меня получилось:
-$ruby -S travis login --github-token ${GITHUB_TOKEN}
+$ sed -i '' 's/lab05/lab06/g' README.md #Вносим изменения в файле README.md
+$ sed -i '' 's/\(DCMAKE_INSTALL_PREFIX=_install\)/\1 -DBUILD_TESTS=ON/' .travis.yml #Вносим изменения в файле .travis.yml
+$ sed -i '' '/cmake --build _build --target install/a\ #Вносим изменения в файле .travis.yml
+- cmake --build _build --target test
+' .travis.yml
 ```
-Проверка репозитория на файл *.travis.yml*
+Отображаем предупреждения или ошибки в файле .travis.yml
 ```ShellSession
-$ travis lint
+$ travis lint #Отображаем предупреждения или ошибки в файле .travis.yml
+#Warnings for .travis.yml:
+#[x] value for addons section is empty, dropping
+#[x] in addons section: unexpected key apt, dropping
 ```
-Вставка значка сервиса Travis CI в формате Markdown
+Выполняем команды для настройки локального репозитория для дальйшей отправки
+в удаленный репозиторий шестой лабораторной работы
 ```ShellSession
-$ ex -sc '1i|[![Build Status](https://travis-ci.org/Goganych/lab06.svg?branch=master)](https://travis-ci.org/Goganych/lab06)' -cx README.md
+
+$ git add . #Добавляем все отредактированные файлы в подтвержденные
+$ git commit -m"added tests" #Создаем коммит с сообщением
+$ git push origin master #Выгружаем локальный репозиторий в удаленный репозиторий шестой лабораторной
 ```
-Выгрузка локального репозитория в онлайн репозиторий и применение всех изменений
+Работа с Travis
 ```ShellSession
-$ git add .travis.yml
-$ git add README.md
-$ git commit -m"added CI"
-$ git push origin master
+#Авторизуемся своим GITHUB аккаунтом
+$ travis login --auto
+#Включаем репозиторий в Travis
+$ travis enable
 ```
-Используем пакет команд Travis
+Заключительные действия
 ```ShellSession
-$ travis lint #Показывает ошибки и предупреждения .travis.yml
-$ travis accounts #Показываем список акаунтов, которые мы можем настраивать
-$ travis sync #Обновляем информацию о пользователях
-$ travis repos #Выводит список репозиториев с информацией об их активности
-$ travis enable #Активируем репозиторий в Travis CI
-$ travis whatsup #Показываем последние изменения в репозиториях
-$ travis branches #Показываем последние изменения в ветках нашего репозитория
-$ travis history #Отображем всю историю данного проекта
-$ travis show #Отображаем информацию о последней сборке проекта
+$ mkdir artifacts #Создаем каталог artifacts
+sleep 20s && gnome-screenshot --file artifacts/screenshot.png #Делаем снимок экрана и помещаем его в каталог artifacts
+$ open https://github.com/${GITHUB_USERNAME}/lab06 #Открываем репозиторий шестой лабораторной на GitHub
 ```
 
 ## Report
 
 ```ShellSession
-$ popd
-$ export LAB_NUMBER=05
+$ cd ~/workspace/labs/
+$ export LAB_NUMBER=06
 $ git clone https://github.com/tp-labs/lab${LAB_NUMBER} tasks/lab${LAB_NUMBER}
 $ mkdir reports/lab${LAB_NUMBER}
 $ cp tasks/lab${LAB_NUMBER}/README.md reports/lab${LAB_NUMBER}/REPORT.md
@@ -115,9 +142,8 @@ $ gistup -m "lab${LAB_NUMBER}"
 
 ## Links
 
-- [Travis Client](https://github.com/travis-ci/travis.rb)
-- [AppVeyour](https://www.appveyor.com/)
-- [GitLab CI](https://about.gitlab.com/gitlab-ci/)
+- [Boost.Tests](http://www.boost.org/doc/libs/1_63_0/libs/test/doc/html/)
+- [Google Test](https://github.com/google/googletest)
 
 ```
 Copyright (c) 2017 Братья Вершинины
